@@ -91,35 +91,6 @@ export class SearchComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Execute step-by-step ─────────────────────────────────────────────────
-  onStepByStep(): void {
-    if (!this.isValid()) return;
-
-    this.isStepLoading = true;
-    this.errorMessage = '';
-    this.stepResult = null;
-    this.currentStepIndex = 0;
-    this.clearStepInterval();
-
-    this.searchService
-      .stepByStep({
-        text: this.textInput,
-        pattern: this.pattern,
-        algorithm: this.selectedAlgorithm,
-      })
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => (this.isStepLoading = false))
-      )
-      .subscribe({
-        next: (result) => {
-          this.stepResult = result;
-          this.activeTab = 'step';
-        },
-        error: (err) => (this.errorMessage = err?.error ?? 'Erro na execução passo a passo.'),
-      });
-  }
-
   // ─── Compare all algorithms ───────────────────────────────────────────────
   onCompareAll(): void {
     if (!this.isValid()) return;

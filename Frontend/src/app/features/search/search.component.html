@@ -87,12 +87,6 @@
               <span *ngIf="isLoading"><span class="btn-spinner">⟳</span>&nbsp;Executando…</span>
             </button>
 
-            <button class="btn btn-secondary" (click)="onStepByStep()"
-              [disabled]="isStepLoading || !isValid()">
-              <span *ngIf="!isStepLoading">⏸&nbsp;&nbsp;Passo a Passo</span>
-              <span *ngIf="isStepLoading"><span class="btn-spinner">⟳</span>&nbsp;Processando…</span>
-            </button>
-
             <button class="btn btn-ghost" (click)="onCompareAll()"
               [disabled]="isCompareLoading || !isValid()">
               <span *ngIf="!isCompareLoading">⚖&nbsp;&nbsp;Comparar Todos</span>

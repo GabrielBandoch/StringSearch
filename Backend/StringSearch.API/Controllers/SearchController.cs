@@ -27,20 +27,6 @@ public class SearchController : ControllerBase
         return Ok(_searchFacade.Execute(command));
     }
 
-    [HttpPost("step-by-step")]
-    [ProducesResponseType(typeof(StepSearchResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<StepSearchResult> StepByStep([FromBody] StepSearchCommand command)
-    {
-        if (string.IsNullOrWhiteSpace(command.Text) || string.IsNullOrWhiteSpace(command.Pattern))
-            return BadRequest("Texto e padrão não podem ser vazios.");
-
-        if (command.Text.Length > 500)
-            return BadRequest("Para execução passo a passo, limite o texto a 500 caracteres.");
-
-        return Ok(_searchFacade.ExecuteStepByStep(command));
-    }
-
     [HttpPost("multi-file")]
     [ProducesResponseType(typeof(MultiFileSearchResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

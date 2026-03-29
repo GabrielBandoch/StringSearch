@@ -39,14 +39,6 @@ export class SearchService {
     );
   }
 
-  // ─── POST /search/step-by-step ────────────────────────────────────────────
-  stepByStep(command: StepSearchCommand): Observable<StepSearchResult> {
-    return this.http.post<StepSearchResult>(
-      `${this.base}${this.ep.STEP_BY_STEP}`,
-      command
-    );
-  }
-
   // ─── POST /search/multi-file ──────────────────────────────────────────────
   multiFile(command: MultiFileSearchCommand): Observable<MultiFileSearchResult> {
     return this.http.post<MultiFileSearchResult>(

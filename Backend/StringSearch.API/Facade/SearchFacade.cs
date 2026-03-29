@@ -22,14 +22,6 @@ public class SearchFacade : ISearchFacade
         return _searchService.Search(command);
     }
 
-    public StepSearchResult ExecuteStepByStep(StepSearchCommand command)
-    {
-        _logger.LogInformation("[Facade] StepByStep | algorithm={Alg} | pattern='{Pat}'",
-            command.Algorithm, command.Pattern);
-
-        return _searchService.SearchStepByStep(command);
-    }
-
     public MultiFileSearchResult ExecuteMultiFile(MultiFileSearchCommand command)
     {
         _logger.LogInformation("[Facade] MultiFile | algorithm={Alg} | files={Count} | pattern='{Pat}'",

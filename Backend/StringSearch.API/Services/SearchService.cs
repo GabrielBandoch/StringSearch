@@ -28,12 +28,6 @@ public class SearchService
         return strategy.Execute(command.Text, command.Pattern);
     }
 
-    public StepSearchResult SearchStepByStep(StepSearchCommand command)
-    {
-        var strategy = ResolveStrategy(command.Algorithm);
-        return strategy.ExecuteStepByStep(command.Text, command.Pattern);
-    }
-
     public MultiFileSearchResult SearchMultipleFiles(MultiFileSearchCommand command)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
