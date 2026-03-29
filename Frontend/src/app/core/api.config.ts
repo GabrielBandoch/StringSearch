@@ -2,7 +2,7 @@
 // Altere BASE_URL para apontar para seu backend em produção.
 
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5000/api', // aqui você muda a url para que gerar ao rodar o backend localmente
+  BASE_URL: 'https://localhost:64872/api', // aqui você muda a url para que gerar ao rodar o backend localmente
   ENDPOINTS: {
     SEARCH: {
       EXECUTE: '/search/execute',

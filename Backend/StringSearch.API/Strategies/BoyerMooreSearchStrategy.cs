@@ -3,21 +3,26 @@ using StringSearch.API.DTOs;
 
 namespace StringSearch.API.Strategies;
 
-/// <summary>
-/// Algoritmo Boyer-Moore
-/// Complexidade: O(n/m) melhor caso, O(n + m) pré-processamento, O(n × m) pior caso
-/// Usa as heurísticas Bad Character e Good Suffix para saltar posições.
-/// </summary>
 public class BoyerMooreSearchStrategy : ISearchStrategy
 {
     private const int AlphabetSize = 256;
-
     public string AlgorithmId => "boyermoore";
     public string AlgorithmDisplayName => "Boyer-Moore";
     public string TheoreticalComplexity => "O(n/m)";
     public string ComplexityDescription =>
         "Melhor caso O(n/m) pois pode pular blocos de texto. Pré-processamento O(m + σ). " +
         "Compara o padrão da direita para a esquerda, usando Bad Character Heuristic.";
+
+    public AlgorithmInfo GetInfo() => new(
+        Id: AlgorithmId,
+        DisplayName: AlgorithmDisplayName,
+        Description: "Compara da direita para esquerda usando heurísticas Bad Character e Good Suffix.",
+        BestCase: "O(n/m)",
+        AverageCase: "O(n/m)",
+        WorstCase: "O(n × m)",
+        SpaceComplexity: "O(m + σ)",
+        UseCaseDescription: "O mais rápido na prática para textos em linguagem natural com alfabeto grande."
+    );
 
     public SearchResult Execute(string text, string pattern)
     {
@@ -148,7 +153,6 @@ public class BoyerMooreSearchStrategy : ISearchStrategy
             }
         }
 
-        // Build readable bad char table (only visible ASCII)
         var bcDisplay = new Dictionary<string, object>();
         for (int c = 32; c < 127; c++)
         {

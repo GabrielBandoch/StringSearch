@@ -3,12 +3,6 @@ using StringSearch.API.DTOs;
 
 namespace StringSearch.API.Strategies;
 
-/// <summary>
-/// Algoritmo Knuth-Morris-Pratt (KMP)
-/// Complexidade: O(n + m)
-/// Usa a tabela LPS (Longest Proper Prefix which is also Suffix)
-/// para evitar comparações redundantes após um mismatch.
-/// </summary>
 public class KMPSearchStrategy : ISearchStrategy
 {
     public string AlgorithmId => "kmp";
@@ -17,6 +11,17 @@ public class KMPSearchStrategy : ISearchStrategy
     public string ComplexityDescription =>
         "Pré-processa o padrão em O(m) para construir a tabela LPS. " +
         "Busca em O(n) nunca retrocedendo no texto. Total: O(n + m).";
+
+    public AlgorithmInfo GetInfo() => new(
+        Id: AlgorithmId,
+        DisplayName: AlgorithmDisplayName,
+        Description: "Pré-processa o padrão para construir a tabela LPS e evita comparações redundantes.",
+        BestCase: "O(n)",
+        AverageCase: "O(n + m)",
+        WorstCase: "O(n + m)",
+        SpaceComplexity: "O(m)",
+        UseCaseDescription: "Garante O(n + m) sempre. Ótimo para padrões com repetições."
+    );
 
     public SearchResult Execute(string text, string pattern)
     {

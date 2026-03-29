@@ -3,11 +3,6 @@ using StringSearch.API.DTOs;
 
 namespace StringSearch.API.Strategies;
 
-/// <summary>
-/// Algoritmo Rabin-Karp
-/// Complexidade: O(n + m) caso médio, O(n * m) pior caso (muitas colisões)
-/// Usa hashing para comparar o padrão com janelas do texto.
-/// </summary>
 public class RabinKarpSearchStrategy : ISearchStrategy
 {
     private const int Base = 256;
@@ -19,6 +14,17 @@ public class RabinKarpSearchStrategy : ISearchStrategy
     public string ComplexityDescription =>
         "Caso médio O(n + m) usando hash. Pior caso O(n × m) se muitas colisões de hash. " +
         "Excelente para busca de múltiplos padrões simultaneamente.";
+
+    public AlgorithmInfo GetInfo() => new(
+        Id: AlgorithmId,
+        DisplayName: AlgorithmDisplayName,
+        Description: "Usa função de hash (rolling hash) para comparar janelas do texto com o padrão.",
+        BestCase: "O(n + m)",
+        AverageCase: "O(n + m)",
+        WorstCase: "O(n × m)",
+        SpaceComplexity: "O(1)",
+        UseCaseDescription: "Excelente para busca de múltiplos padrões. Bom desempenho médio."
+    );
 
     public SearchResult Execute(string text, string pattern)
     {
@@ -46,7 +52,7 @@ public class RabinKarpSearchStrategy : ISearchStrategy
 
         for (int i = 0; i <= n - m; i++)
         {
-            comparisons++; // hash comparison
+            comparisons++;
 
             if (patternHash == windowHash)
             {

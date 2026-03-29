@@ -3,11 +3,6 @@ using StringSearch.API.DTOs;
 
 namespace StringSearch.API.Strategies;
 
-/// <summary>
-/// Algoritmo de Busca Naive (Força Bruta)
-/// Complexidade: O(n * m) no pior caso
-/// Compara o padrão com cada posição possível no texto.
-/// </summary>
 public class NaiveSearchStrategy : ISearchStrategy
 {
     public string AlgorithmId => "naive";
@@ -16,6 +11,17 @@ public class NaiveSearchStrategy : ISearchStrategy
     public string ComplexityDescription =>
         "n = tamanho do texto, m = tamanho do padrão. " +
         "No pior caso (ex: texto 'AAAA' e padrão 'AAB'), cada posição requer m comparações.";
+
+    public AlgorithmInfo GetInfo() => new(
+        Id: AlgorithmId,
+        DisplayName: AlgorithmDisplayName,
+        Description: "Compara o padrão com cada posição possível do texto sequencialmente.",
+        BestCase: "O(n)",
+        AverageCase: "O(n × m)",
+        WorstCase: "O(n × m)",
+        SpaceComplexity: "O(1)",
+        UseCaseDescription: "Simples de implementar. Adequado para textos e padrões pequenos."
+    );
 
     public SearchResult Execute(string text, string pattern)
     {

@@ -23,17 +23,17 @@ builder.Services.AddSwaggerGen(c =>
         Title = "String Search API",
         Version = "v1",
         Description = "API para comparação de algoritmos de busca de padrões em strings. " +
-                      "Padrões arquiteturais: Strategy + Facade."
+                      "Padrões arquiteturais: Strategy + Facade. Despacho via switch expression."
     });
 });
 
-// ─── Strategy: registra cada algoritmo como ISearchStrategy ──────────────────
-builder.Services.AddSingleton<ISearchStrategy, NaiveSearchStrategy>();
-builder.Services.AddSingleton<ISearchStrategy, RabinKarpSearchStrategy>();
-builder.Services.AddSingleton<ISearchStrategy, KMPSearchStrategy>();
-builder.Services.AddSingleton<ISearchStrategy, BoyerMooreSearchStrategy>();
+// ─── Strategy: registra cada algoritmo individualmente ───────────────────────
+builder.Services.AddSingleton<NaiveSearchStrategy>();
+builder.Services.AddSingleton<RabinKarpSearchStrategy>();
+builder.Services.AddSingleton<KMPSearchStrategy>();
+builder.Services.AddSingleton<BoyerMooreSearchStrategy>();
 
-// ─── Service: recebe IEnumerable<ISearchStrategy> via DI ─────────────────────
+// ─── Service: recebe as strategies individualmente via DI ─────────────────────
 builder.Services.AddSingleton<SearchService>();
 
 // ─── Facade: ponto único de entrada para o Controller ────────────────────────

@@ -3,14 +3,6 @@ using StringSearch.API.Services;
 
 namespace StringSearch.API.Facade;
 
-/// <summary>
-/// Implementação do Facade de busca.
-/// Delega ao SearchService (que usa o padrão Strategy internamente).
-/// O Controller não precisa saber nada sobre Service nem Strategy — só chama o Facade.
-///
-/// Fluxo:
-///   Controller → ISearchFacade → SearchService → ISearchStrategy (Naive/KMP/RK/BM)
-/// </summary>
 public class SearchFacade : ISearchFacade
 {
     private readonly SearchService _searchService;

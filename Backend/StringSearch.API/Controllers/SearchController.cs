@@ -4,10 +4,6 @@ using StringSearch.API.Facade;
 
 namespace StringSearch.API.Controllers;
 
-/// <summary>
-/// Controller limpo: recebe HTTP, valida entrada, delega ao Facade, retorna resposta.
-/// Não conhece Service, Strategy nem nenhuma lógica de busca.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -20,7 +16,6 @@ public class SearchController : ControllerBase
         _searchFacade = searchFacade;
     }
 
-    /// POST /api/search/execute
     [HttpPost("execute")]
     [ProducesResponseType(typeof(SearchResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -32,7 +27,6 @@ public class SearchController : ControllerBase
         return Ok(_searchFacade.Execute(command));
     }
 
-    /// POST /api/search/step-by-step
     [HttpPost("step-by-step")]
     [ProducesResponseType(typeof(StepSearchResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -47,7 +41,6 @@ public class SearchController : ControllerBase
         return Ok(_searchFacade.ExecuteStepByStep(command));
     }
 
-    /// POST /api/search/multi-file
     [HttpPost("multi-file")]
     [ProducesResponseType(typeof(MultiFileSearchResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -62,7 +55,6 @@ public class SearchController : ControllerBase
         return Ok(_searchFacade.ExecuteMultiFile(command));
     }
 
-    /// POST /api/search/compare-all
     [HttpPost("compare-all")]
     [ProducesResponseType(typeof(List<SearchResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -74,7 +66,6 @@ public class SearchController : ControllerBase
         return Ok(_searchFacade.ExecuteCompareAll(command));
     }
 
-    /// GET /api/search/algorithms
     [HttpGet("algorithms")]
     [ProducesResponseType(typeof(List<AlgorithmInfo>), StatusCodes.Status200OK)]
     public ActionResult<List<AlgorithmInfo>> GetAlgorithms()

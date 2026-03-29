@@ -5,7 +5,7 @@ namespace StringSearch.API.DTOs;
 public record SearchCommand(
     string Text,
     string Pattern,
-    string Algorithm  // "naive" | "rabinkarp" | "kmp" | "boyermoore"
+    string Algorithm
 );
 
 public record StepSearchCommand(
