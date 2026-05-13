@@ -90,6 +90,28 @@ export interface AlgorithmInfo {
   useCaseDescription: string;
 }
 
+// ─── Observabilidade: métricas locais ────────────────────────────────────────
+// Coletadas no frontend para exibição no dashboard da Parte 1.
+// Na Parte 2, serão substituídas por dados reais do OpenTelemetry/Prometheus.
+
+export interface AlgorithmMetric {
+  algorithmId: string;
+  displayName: string;
+  totalExecutions: number;
+  totalComparisons: number;
+  totalTimeNs: number;
+  avgTimeNs: number;
+  avgComparisons: number;
+  lastExecutedAt: Date;
+}
+
+export interface MetricsSummary {
+  totalSearches: number;
+  metrics: AlgorithmMetric[];
+  fastestAlgorithm: string | null;
+  mostUsedAlgorithm: string | null;
+}
+
 // ─── Type Aliases ─────────────────────────────────────────────────────────────
 
 export type AlgorithmId = 'naive' | 'rabinkarp' | 'kmp' | 'boyermoore';

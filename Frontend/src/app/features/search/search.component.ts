@@ -1,13 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { SearchService } from '../../core/services/search.service';
+import { MetricsService } from '../../core/services/metrics.service';
 import {
   AlgorithmId,
   AlgorithmInfo,
   FileContent,
+  MetricsSummary,
   MultiFileSearchResult,
   SearchResult,
-  StepSearchResult,
 } from '../../core/models/search.models';
 
 @Component({
@@ -16,6 +17,7 @@ import {
   styleUrls: ['./search.component.scss'],
 })
 export class SearchComponent implements OnInit, OnDestroy {
+
   // ─── State ────────────────────────────────────────────────────────────────
   algorithms: AlgorithmInfo[] = [];
   selectedAlgorithm: AlgorithmId = 'kmp';
@@ -24,91 +26,77 @@ export class SearchComponent implements OnInit, OnDestroy {
   uploadedFiles: FileContent[] = [];
 
   isLoading = false;
-  isStepLoading = false;
   isCompareLoading = false;
   errorMessage = '';
 
   searchResult: SearchResult | null = null;
-  stepResult: StepSearchResult | null = null;
   compareResults: SearchResult[] = [];
   multiFileResult: MultiFileSearchResult | null = null;
 
-  currentStepIndex = 0;
-  isPlayingSteps = false;
-  stepPlayInterval: ReturnType<typeof setInterval> | null = null;
-  stepDelay = 400; // ms entre passos
+  // ─── Métricas (dashboard Parte 1) ────────────────────────────────────────
+  metricsSummary: MetricsSummary | null = null;
 
-  activeTab: 'search' | 'step' | 'compare' | 'files' = 'search';
+  activeTab: 'search' | 'compare' | 'files' | 'dashboard' = 'search';
 
   private destroy$ = new Subject<void>();
 
-  // ─── DI seguindo o padrão solicitado ─────────────────────────────────────
-  constructor(private searchService: SearchService) {}
+  constructor(
+    private searchService: SearchService,
+    private metricsService: MetricsService
+  ) {}
 
   // ─── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.loadAlgorithms();
+    this.metricsService.summary
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(summary => (this.metricsSummary = summary));
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.clearStepInterval();
   }
 
-  // ─── Load algorithms from API ─────────────────────────────────────────────
+  // ─── Algoritmos ───────────────────────────────────────────────────────────
   loadAlgorithms(): void {
     this.searchService
       .getAlgorithms()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => (this.algorithms = data),
-        error: () => (this.errorMessage = 'Não foi possível carregar os algoritmos. Verifique se o backend está rodando.'),
+        error: () =>
+          (this.errorMessage =
+            'Não foi possível carregar os algoritmos. Verifique se o backend está rodando.'),
       });
   }
 
-  // ─── Execute normal search ────────────────────────────────────────────────
+  // ─── Busca simples ────────────────────────────────────────────────────────
   onExecute(): void {
     if (!this.isValid()) return;
-
     this.isLoading = true;
     this.errorMessage = '';
     this.searchResult = null;
 
     this.searchService
-      .execute({
-        text: this.textInput,
-        pattern: this.pattern,
-        algorithm: this.selectedAlgorithm,
-      })
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => (this.isLoading = false))
-      )
+      .execute({ text: this.textInput, pattern: this.pattern, algorithm: this.selectedAlgorithm })
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (result) => (this.searchResult = result),
         error: (err) => (this.errorMessage = err?.error ?? 'Erro ao executar busca.'),
       });
   }
 
-  // ─── Compare all algorithms ───────────────────────────────────────────────
+  // ─── Comparar todos ───────────────────────────────────────────────────────
   onCompareAll(): void {
     if (!this.isValid()) return;
-
     this.isCompareLoading = true;
     this.errorMessage = '';
     this.compareResults = [];
 
     this.searchService
-      .compareAll({
-        text: this.textInput,
-        pattern: this.pattern,
-        algorithm: this.selectedAlgorithm,
-      })
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => (this.isCompareLoading = false))
-      )
+      .compareAll({ text: this.textInput, pattern: this.pattern, algorithm: this.selectedAlgorithm })
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isCompareLoading = false)))
       .subscribe({
         next: (results) => {
           this.compareResults = results;
@@ -118,24 +106,16 @@ export class SearchComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Multi-file search ────────────────────────────────────────────────────
+  // ─── Multi-file ───────────────────────────────────────────────────────────
   onSearchFiles(): void {
     if (this.uploadedFiles.length === 0 || !this.pattern.trim()) return;
-
     this.isLoading = true;
     this.errorMessage = '';
     this.multiFileResult = null;
 
     this.searchService
-      .multiFile({
-        files: this.uploadedFiles,
-        pattern: this.pattern,
-        algorithm: this.selectedAlgorithm,
-      })
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => (this.isLoading = false))
-      )
+      .multiFile({ files: this.uploadedFiles, pattern: this.pattern, algorithm: this.selectedAlgorithm })
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (result) => {
           this.multiFileResult = result;
@@ -145,22 +125,15 @@ export class SearchComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─── File upload ──────────────────────────────────────────────────────────
+  // ─── Upload ───────────────────────────────────────────────────────────────
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
-
     this.uploadedFiles = [];
-    const files = Array.from(input.files);
-
-    files.forEach((file) => {
+    Array.from(input.files).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.uploadedFiles.push({
-          fileName: file.name,
-          content: e.target?.result as string,
-        });
-        // If all files loaded, auto-set text from first file
+        this.uploadedFiles.push({ fileName: file.name, content: e.target?.result as string });
         if (this.uploadedFiles.length === 1) {
           this.textInput = this.uploadedFiles[0].content.slice(0, 2000);
         }
@@ -169,49 +142,9 @@ export class SearchComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Step-by-step controls ────────────────────────────────────────────────
-  nextStep(): void {
-    if (this.stepResult && this.currentStepIndex < this.stepResult.steps.length - 1) {
-      this.currentStepIndex++;
-    }
-  }
-
-  prevStep(): void {
-    if (this.currentStepIndex > 0) this.currentStepIndex--;
-  }
-
-  goToStep(index: number): void {
-    this.currentStepIndex = index;
-  }
-
-  togglePlay(): void {
-    if (this.isPlayingSteps) {
-      this.clearStepInterval();
-      this.isPlayingSteps = false;
-    } else {
-      this.isPlayingSteps = true;
-      this.stepPlayInterval = setInterval(() => {
-        if (!this.stepResult || this.currentStepIndex >= this.stepResult.steps.length - 1) {
-          this.clearStepInterval();
-          this.isPlayingSteps = false;
-          return;
-        }
-        this.currentStepIndex++;
-      }, this.stepDelay);
-    }
-  }
-
-  resetSteps(): void {
-    this.clearStepInterval();
-    this.isPlayingSteps = false;
-    this.currentStepIndex = 0;
-  }
-
-  private clearStepInterval(): void {
-    if (this.stepPlayInterval) {
-      clearInterval(this.stepPlayInterval);
-      this.stepPlayInterval = null;
-    }
+  // ─── Dashboard ────────────────────────────────────────────────────────────
+  resetMetrics(): void {
+    this.metricsService.reset();
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -230,16 +163,39 @@ export class SearchComponent implements OnInit, OnDestroy {
     );
   }
 
-  auxiliaryEntries(): [string, unknown][] {
-    if (!this.stepResult?.auxiliaryStructure) return [];
-    return Object.entries(this.stepResult.auxiliaryStructure.data);
-  }
-
   setActiveTab(tab: typeof this.activeTab): void {
     this.activeTab = tab;
   }
 
-  trackByStep(_: number, step: { stepNumber: number }) {
-    return step.stepNumber;
+  // ─── Barras do gráfico de comparação ─────────────────────────────────────
+  getMaxComparisons(): number {
+    if (!this.compareResults.length) return 1;
+    return Math.max(...this.compareResults.map(r => r.totalComparisons), 1);
+  }
+
+  getMaxTimeNs(): number {
+    if (!this.compareResults.length) return 1;
+    return Math.max(...this.compareResults.map(r => r.executionTimeNs), 1);
+  }
+
+  getBarWidth(value: number, max: number): string {
+    return max > 0 ? `${Math.max((value / max) * 100, 2).toFixed(1)}%` : '2%';
+  }
+
+  // ─── Dashboard: barras de métricas ───────────────────────────────────────
+  getMaxAvgTime(): number {
+    if (!this.metricsSummary?.metrics.length) return 1;
+    return Math.max(...this.metricsSummary.metrics.map(m => m.avgTimeNs), 1);
+  }
+
+  getMaxExecutions(): number {
+    if (!this.metricsSummary?.metrics.length) return 1;
+    return Math.max(...this.metricsSummary.metrics.map(m => m.totalExecutions), 1);
+  }
+
+  formatNs(ns: number): string {
+    if (ns < 1_000) return `${ns.toFixed(0)} ns`;
+    if (ns < 1_000_000) return `${(ns / 1_000).toFixed(1)} µs`;
+    return `${(ns / 1_000_000).toFixed(2)} ms`;
   }
 }

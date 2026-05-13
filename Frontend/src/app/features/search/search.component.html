@@ -11,6 +11,7 @@
         <span class="badge">Strategy</span>
         <span class="badge">Facade</span>
         <span class="badge">.NET 8 + Angular</span>
+        <span class="badge badge-new">Observabilidade</span>
       </div>
     </div>
   </header>
@@ -54,9 +55,6 @@
               placeholder="Cole o texto ou carregue um .txt abaixo..."></textarea>
             <div class="field-footer">
               <span class="field-hint">{{ textInput.length }} caracteres</span>
-              <span *ngIf="textInput.length > 400" class="field-hint" style="color:#c0392b">
-                máx. 500 para passo a passo
-              </span>
             </div>
           </div>
 
@@ -101,248 +99,288 @@
 
         </div>
       </div>
+
+      <!-- Algorithm detail -->
+      <div *ngIf="getAlgorithmInfo() as info" class="panel algo-detail-card">
+        <div class="panel-head"><span class="panel-title">{{ info.displayName }}</span></div>
+        <div class="panel-body">
+          <p class="algo-full-desc">{{ info.description }}</p>
+          <div class="complexity-grid">
+            <div class="cg-item"><span class="cg-label">Melhor</span><span class="cg-val cg-best">{{ info.bestCase }}</span></div>
+            <div class="cg-item"><span class="cg-label">Médio</span><span class="cg-val cg-avg">{{ info.averageCase }}</span></div>
+            <div class="cg-item"><span class="cg-label">Pior</span><span class="cg-val cg-worst">{{ info.worstCase }}</span></div>
+            <div class="cg-item"><span class="cg-label">Espaço</span><span class="cg-val cg-space">{{ info.spaceComplexity }}</span></div>
+          </div>
+        </div>
+      </div>
     </aside>
 
-    <!-- ─── Right: Results ──────────────────────────────────────────────── -->
+    <!-- ─── Right: Result Panel ──────────────────────────────────────────── -->
     <main>
 
-      <!-- Empty state -->
-      <div *ngIf="!searchResult && !stepResult && !compareResults.length && !multiFileResult"
-        class="panel">
-        <div class="empty-state">
-          <span class="empty-icon">⌕</span>
-          <div class="empty-title">Nenhum resultado ainda</div>
-          <div class="empty-sub">
-            Configure o algoritmo, insira um texto e um padrão<br>
-            e pressione <strong>Executar</strong> para começar.
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'search'" (click)="setActiveTab('search')">Resultado</button>
+        <button class="tab-btn" [class.active]="activeTab === 'compare'" (click)="setActiveTab('compare')">
+          Comparação
+          <span *ngIf="compareResults.length" class="tab-badge">{{ compareResults.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'files'" (click)="setActiveTab('files')">
+          Arquivos
+          <span *ngIf="multiFileResult" class="tab-badge">{{ multiFileResult.fileResults.length }}</span>
+        </button>
+        <button class="tab-btn tab-dashboard" [class.active]="activeTab === 'dashboard'" (click)="setActiveTab('dashboard')">
+          📊 Dashboard
+          <span *ngIf="metricsSummary && metricsSummary.totalSearches > 0" class="tab-badge">{{ metricsSummary.totalSearches }}</span>
+        </button>
+      </div>
+
+      <!-- TAB: Resultado -->
+      <div *ngIf="activeTab === 'search'" class="tab-content">
+        <div *ngIf="!searchResult" class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p>Configure o algoritmo, o padrão e o texto, depois clique em <strong>Executar</strong>.</p>
+        </div>
+        <div *ngIf="searchResult" class="result-card">
+          <div class="result-header">
+            <div>
+              <span class="result-algo-name">{{ searchResult.algorithmDisplayName }}</span>
+              <span class="result-complexity">{{ searchResult.theoreticalComplexity }}</span>
+            </div>
+            <div class="result-meta">
+              <span class="meta-tag">{{ searchResult.textLength }} chars</span>
+              <span class="meta-tag">padrão {{ searchResult.patternLength }} chars</span>
+            </div>
+          </div>
+          <div class="result-stats">
+            <div class="stat-box stat-primary">
+              <span class="stat-value">{{ searchResult.totalOccurrences }}</span>
+              <span class="stat-label">Ocorrências</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-value">{{ searchResult.totalComparisons }}</span>
+              <span class="stat-label">Comparações</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-value">{{ formatNs(searchResult.executionTimeNs) }}</span>
+              <span class="stat-label">Tempo real</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-value">{{ searchResult.executionTimeMs }} ms</span>
+              <span class="stat-label">Tempo (ms)</span>
+            </div>
+          </div>
+          <div *ngIf="searchResult.totalOccurrences > 0" class="occurrences-section">
+            <span class="occ-label">Posições encontradas:</span>
+            <div class="occ-chips">
+              <span *ngFor="let pos of searchResult.occurrences" class="occ-chip">{{ pos }}</span>
+            </div>
+          </div>
+          <div *ngIf="searchResult.totalOccurrences === 0" class="no-match-msg">Nenhuma ocorrência encontrada.</div>
+          <div class="analysis-box">
+            <span class="analysis-label">Análise de complexidade</span>
+            <p class="analysis-text">{{ searchResult.complexityAnalysis }}</p>
+            <p class="analysis-text">{{ searchResult.complexityDescription }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Results panel -->
-      <div *ngIf="searchResult || stepResult || compareResults.length || multiFileResult"
-        class="panel results-panel">
-
-        <!-- Tabs -->
-        <div class="tabs-bar">
-          <button class="tab-btn" [class.active]="activeTab==='search'"
-            (click)="setActiveTab('search')" *ngIf="searchResult">Resultado</button>
-          <button class="tab-btn" [class.active]="activeTab==='step'"
-            (click)="setActiveTab('step')" *ngIf="stepResult">Passo a Passo</button>
-          <button class="tab-btn" [class.active]="activeTab==='compare'"
-            (click)="setActiveTab('compare')" *ngIf="compareResults.length">Comparação</button>
-          <button class="tab-btn" [class.active]="activeTab==='files'"
-            (click)="setActiveTab('files')" *ngIf="multiFileResult">Arquivos</button>
+      <!-- TAB: Comparação -->
+      <div *ngIf="activeTab === 'compare'" class="tab-content">
+        <div *ngIf="!compareResults.length" class="empty-state">
+          <div class="empty-icon">⚖</div>
+          <p>Clique em <strong>Comparar Todos</strong> para ver os algoritmos lado a lado.</p>
         </div>
-
-        <!-- ── Tab: Resultado ─────────────────────────────────────────── -->
-        <div *ngIf="activeTab==='search' && searchResult" class="tab-pane">
-
-          <div class="metrics-row">
-            <div class="metric-cell metric-hero">
-              <span class="metric-val">{{ searchResult.totalOccurrences }}</span>
-              <span class="metric-lbl">Ocorrências</span>
-            </div>
-            <div class="metric-cell">
-              <span class="metric-val">{{ searchResult.totalComparisons }}</span>
-              <span class="metric-lbl">Comparações</span>
-            </div>
-            <div class="metric-cell">
-              <span class="metric-val">{{ searchResult.executionTimeNs }}<small style="font-size:0.7rem;font-weight:300"> ns</small></span>
-              <span class="metric-lbl">Tempo</span>
-            </div>
+        <div *ngIf="compareResults.length">
+          <div *ngIf="getCompareWinner() as winner" class="winner-banner">
+            <span class="winner-crown">🏆</span>
+            <span class="winner-text"><strong>{{ winner.algorithmDisplayName }}</strong> usou menos comparações ({{ winner.totalComparisons }}) neste texto.</span>
           </div>
-
-          <div class="metrics-row" style="margin-bottom:1.5rem">
-            <div class="metric-cell">
-              <span class="metric-val">{{ searchResult.textLength }}</span>
-              <span class="metric-lbl">Chars no Texto</span>
-            </div>
-            <div class="metric-cell">
-              <span class="metric-val">{{ searchResult.patternLength }}</span>
-              <span class="metric-lbl">Chars no Padrão</span>
-            </div>
-            <div class="metric-cell">
-              <span class="metric-val" style="font-size:1rem">{{ searchResult.executionTimeMs }} ms</span>
-              <span class="metric-lbl">Tempo (ms)</span>
-            </div>
-          </div>
-
-          <div class="complexity-block">
-            <div class="cb-header">
-              <span class="cb-label">Complexidade Teórica</span>
-              <span class="cb-formula">{{ searchResult.theoreticalComplexity }}</span>
-            </div>
-            <div class="cb-body">{{ searchResult.complexityDescription }}</div>
-            <div class="cb-analysis">{{ searchResult.complexityAnalysis }}</div>
-          </div>
-
-          <div *ngIf="searchResult.occurrences.length" class="occurrences-block">
-            <div class="occ-title">Posições encontradas ({{ searchResult.occurrences.length }})</div>
-            <div class="pos-tags">
-              <span *ngFor="let p of searchResult.occurrences" class="pos-tag">{{ p }}</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ── Tab: Passo a Passo ────────────────────────────────────── -->
-        <div *ngIf="activeTab==='step' && stepResult" class="tab-pane">
-
-          <!-- Auxiliary structure -->
-          <div *ngIf="stepResult.auxiliaryStructure as aux" class="aux-block">
-            <div class="aux-title">{{ aux.name }}</div>
-            <div class="aux-desc">{{ aux.description }}</div>
-            <div class="aux-grid">
-              <div *ngFor="let e of auxiliaryEntries()" class="aux-entry">
-                <span class="aux-k">{{ e[0] }}</span>
-                <span class="aux-v">{{ e[1] }}</span>
+          <div class="compare-grid">
+            <div *ngFor="let r of compareResults" class="compare-card" [class.compare-winner]="r === getCompareWinner()">
+              <div class="cc-header">
+                <span class="cc-name">{{ r.algorithmDisplayName }}</span>
+                <span class="cc-complexity">{{ r.theoreticalComplexity }}</span>
+              </div>
+              <div class="cc-stats">
+                <div class="cc-stat"><span class="cc-stat-label">Ocorrências</span><span class="cc-stat-val">{{ r.totalOccurrences }}</span></div>
+                <div class="cc-stat"><span class="cc-stat-label">Comparações</span><span class="cc-stat-val">{{ r.totalComparisons }}</span></div>
+                <div class="cc-stat"><span class="cc-stat-label">Tempo</span><span class="cc-stat-val">{{ formatNs(r.executionTimeNs) }}</span></div>
+              </div>
+              <div class="bar-section">
+                <span class="bar-label">Comparações</span>
+                <div class="bar-track">
+                  <div class="bar-fill bar-comparisons" [style.width]="getBarWidth(r.totalComparisons, getMaxComparisons())"></div>
+                </div>
+                <span class="bar-pct">{{ (r.totalComparisons / getMaxComparisons() * 100).toFixed(0) }}%</span>
+              </div>
+              <div class="bar-section">
+                <span class="bar-label">Tempo (ns)</span>
+                <div class="bar-track">
+                  <div class="bar-fill bar-time" [style.width]="getBarWidth(r.executionTimeNs, getMaxTimeNs())"></div>
+                </div>
+                <span class="bar-pct">{{ (r.executionTimeNs / getMaxTimeNs() * 100).toFixed(0) }}%</span>
               </div>
             </div>
           </div>
-
-          <!-- Controls -->
-          <div class="step-controls">
-            <button class="btn btn-sm btn-ghost" (click)="resetSteps()">⏮</button>
-            <button class="btn btn-sm btn-ghost" (click)="prevStep()" [disabled]="currentStepIndex===0">◀</button>
-            <button class="btn btn-sm btn-primary" (click)="togglePlay()">
-              {{ isPlayingSteps ? '⏸ Pausar' : '▶ Play' }}
-            </button>
-            <button class="btn btn-sm btn-ghost" (click)="nextStep()"
-              [disabled]="!stepResult || currentStepIndex >= stepResult.steps.length - 1">▶</button>
-            <span class="step-counter">{{ currentStepIndex + 1 }} / {{ stepResult.steps.length }}</span>
-            <div class="speed-wrap">
-              Vel.
-              <input type="range" min="100" max="1500" step="100" [(ngModel)]="stepDelay" />
-              {{ stepDelay }}ms
-            </div>
-          </div>
-
-          <!-- Current step -->
-          <div *ngIf="stepResult.steps[currentStepIndex] as step"
-            class="step-card" [class.is-match]="step.isMatch" [class.is-mismatch]="!step.isMatch">
-            <div class="step-card-head">
-              <span class="step-num">step #{{ step.stepNumber }}</span>
-              <span class="step-verdict" [class.match]="step.isMatch" [class.mismatch]="!step.isMatch">
-                {{ step.isMatch ? 'Match' : 'Mismatch' }}
-              </span>
-            </div>
-            <div class="step-card-body">
-              <div class="step-desc">{{ step.description }}</div>
-              <div class="chars-row">
-                <div class="char-group">
-                  <span class="char-lbl">texto[{{ step.textIndex }}]</span>
-                  <div class="char-box" [class.match]="step.isMatch" [class.mismatch]="!step.isMatch">
-                    {{ step.textChar }}
-                  </div>
-                </div>
-                <span class="vs-label">vs</span>
-                <div class="char-group">
-                  <span class="char-lbl">padrão[{{ step.patternIndex }}]</span>
-                  <div class="char-box" [class.match]="step.isMatch" [class.mismatch]="!step.isMatch">
-                    {{ step.patternChar }}
-                  </div>
-                </div>
-              </div>
-              <div class="step-offset">Offset do padrão: <strong>{{ step.patternOffset }}</strong></div>
-            </div>
-          </div>
-
-          <!-- Log -->
-          <div class="step-log-title">Log de Comparações</div>
-          <div class="step-log">
-            <div *ngFor="let s of stepResult.steps; let i=index; trackBy: trackByStep"
-              class="log-row" [class.active]="i===currentStepIndex"
-              [class.match]="s.isMatch" [class.mismatch]="!s.isMatch"
-              (click)="goToStep(i)">
-              <span class="log-n">{{ s.stepNumber }}</span>
-              <span class="log-text">{{ s.description }}</span>
-            </div>
-          </div>
-
-          <div class="step-footer">
-            <span>Ocorrências: <strong>{{ stepResult.totalOccurrences }}</strong></span>
-            <span>Total de comparações: <strong>{{ stepResult.totalComparisons }}</strong></span>
-          </div>
-        </div>
-
-        <!-- ── Tab: Comparação ───────────────────────────────────────── -->
-        <div *ngIf="activeTab==='compare' && compareResults.length" class="tab-pane">
-
-          <div *ngIf="getCompareWinner() as w" class="winner-strip">
-            <span class="winner-icon">🏆</span>
-            <span class="winner-text">
-              Menos comparações: <strong>{{ w.algorithmDisplayName }}</strong>
-              — {{ w.totalComparisons }} comparações
-            </span>
-          </div>
-
-          <div style="overflow-x:auto; margin-bottom: 1.5rem;">
+          <div class="compare-table-wrapper">
             <table class="compare-table">
               <thead>
-                <tr>
-                  <th>Algoritmo</th>
-                  <th>Complexidade</th>
-                  <th>Ocorrências</th>
-                  <th>Comparações</th>
-                  <th>Tempo (ms)</th>
-                  <th>Tempo (ns)</th>
-                </tr>
+                <tr><th>Algoritmo</th><th>Complexidade</th><th>Ocorrências</th><th>Comparações</th><th>Tempo real</th></tr>
               </thead>
               <tbody>
-                <tr *ngFor="let r of compareResults"
-                  [class.row-winner]="r.algorithmDisplayName === getCompareWinner()?.algorithmDisplayName">
-                  <td>{{ r.algorithmDisplayName }}</td>
+                <tr *ngFor="let r of compareResults" [class.winner-row]="r === getCompareWinner()">
+                  <td><span *ngIf="r === getCompareWinner()" class="row-crown">🏆</span>{{ r.algorithmDisplayName }}</td>
                   <td><code>{{ r.theoreticalComplexity }}</code></td>
                   <td>{{ r.totalOccurrences }}</td>
                   <td>{{ r.totalComparisons }}</td>
-                  <td>{{ r.executionTimeMs }}</td>
-                  <td>{{ r.executionTimeNs }}</td>
+                  <td>{{ formatNs(r.executionTimeNs) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Arquivos -->
+      <div *ngIf="activeTab === 'files'" class="tab-content">
+        <div *ngIf="!multiFileResult" class="empty-state">
+          <div class="empty-icon">📄</div>
+          <p>Selecione arquivos .txt e clique em <strong>Buscar nos Arquivos</strong>.</p>
+        </div>
+        <div *ngIf="multiFileResult">
+          <div class="files-header">
+            <span class="files-algo">{{ multiFileResult.algorithm }}</span>
+            <span class="files-total-time">Total: {{ multiFileResult.totalExecutionTimeMs }} ms</span>
+          </div>
+          <div class="file-results-list">
+            <div *ngFor="let fr of multiFileResult.fileResults" class="file-result-card">
+              <div class="fr-header">
+                <span class="fr-filename">{{ fr.fileName }}</span>
+                <span class="fr-occurrences">{{ fr.result.totalOccurrences }} ocorrências</span>
+              </div>
+              <div class="fr-stats">
+                <span class="fr-stat">{{ fr.result.totalComparisons }} comparações</span>
+                <span class="fr-stat">{{ formatNs(fr.result.executionTimeNs) }}</span>
+                <span class="fr-stat">{{ fr.result.textLength }} chars</span>
+              </div>
+              <div *ngIf="fr.result.occurrences.length" class="occ-chips">
+                <span *ngFor="let pos of fr.result.occurrences.slice(0, 20)" class="occ-chip">{{ pos }}</span>
+                <span *ngIf="fr.result.occurrences.length > 20" class="occ-chip occ-more">+{{ fr.result.occurrences.length - 20 }} mais</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Dashboard -->
+      <div *ngIf="activeTab === 'dashboard'" class="tab-content">
+        <div class="dashboard-header">
+          <div class="dashboard-title-row">
+            <h2 class="dashboard-title">📊 Dashboard de Observabilidade</h2>
+            <button class="btn btn-ghost btn-sm" (click)="resetMetrics()"
+              [disabled]="!metricsSummary || metricsSummary.totalSearches === 0">↺ Resetar</button>
+          </div>
+          <p class="dashboard-subtitle">
+            Métricas coletadas localmente no frontend. Na <strong>Parte 2</strong>, serão exportadas
+            via <strong>OpenTelemetry → Prometheus → Grafana</strong>.
+          </p>
+        </div>
+
+        <div *ngIf="metricsSummary && metricsSummary.totalSearches > 0">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-value">{{ metricsSummary.totalSearches }}</span>
+              <span class="kpi-label">Total de Buscas</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">{{ metricsSummary.metrics.length }}</span>
+              <span class="kpi-label">Algoritmos Usados</span>
+            </div>
+            <div class="kpi-card kpi-highlight">
+              <span class="kpi-value">{{ metricsSummary.fastestAlgorithm ?? '—' }}</span>
+              <span class="kpi-label">Mais Rápido (média)</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value">{{ metricsSummary.mostUsedAlgorithm ?? '—' }}</span>
+              <span class="kpi-label">Mais Utilizado</span>
+            </div>
+          </div>
+
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <span class="chart-title">Tempo Médio de Execução por Algoritmo</span>
+              <span class="chart-subtitle">baseado nas execuções desta sessão</span>
+            </div>
+            <div class="chart-bars">
+              <div *ngFor="let m of metricsSummary.metrics" class="chart-bar-row">
+                <span class="chart-algo-name">{{ m.displayName }}</span>
+                <div class="chart-bar-track">
+                  <div class="chart-bar-fill chart-bar-time" [style.width]="getBarWidth(m.avgTimeNs, getMaxAvgTime())">
+                    <span class="chart-bar-label-inside">{{ formatNs(m.avgTimeNs) }}</span>
+                  </div>
+                </div>
+                <span class="chart-val">{{ formatNs(m.avgTimeNs) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <span class="chart-title">Número de Execuções por Algoritmo</span>
+              <span class="chart-subtitle">contagem acumulada na sessão</span>
+            </div>
+            <div class="chart-bars">
+              <div *ngFor="let m of metricsSummary.metrics" class="chart-bar-row">
+                <span class="chart-algo-name">{{ m.displayName }}</span>
+                <div class="chart-bar-track">
+                  <div class="chart-bar-fill chart-bar-count" [style.width]="getBarWidth(m.totalExecutions, getMaxExecutions())">
+                    <span class="chart-bar-label-inside">{{ m.totalExecutions }}×</span>
+                  </div>
+                </div>
+                <span class="chart-val">{{ m.totalExecutions }}×</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <span class="chart-title">Métricas Detalhadas</span>
+            </div>
+            <table class="metrics-table">
+              <thead>
+                <tr><th>Algoritmo</th><th>Execuções</th><th>Tempo médio</th><th>Comparações médias</th><th>Total comparações</th><th>Última execução</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of metricsSummary.metrics">
+                  <td><strong>{{ m.displayName }}</strong></td>
+                  <td>{{ m.totalExecutions }}</td>
+                  <td>{{ formatNs(m.avgTimeNs) }}</td>
+                  <td>{{ m.avgComparisons.toFixed(0) }}</td>
+                  <td>{{ m.totalComparisons }}</td>
+                  <td class="ts-cell">{{ m.lastExecutedAt | date:'HH:mm:ss' }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <div class="chart-title">Comparações por Algoritmo</div>
-          <div class="chart-rows">
-            <div *ngFor="let r of compareResults" class="chart-row">
-              <span class="chart-name">{{ r.algorithmDisplayName }}</span>
-              <div class="chart-track">
-                <div class="chart-bar"
-                  [style.width.%]="(r.totalComparisons / (compareResults | maxComparisons)) * 100"
-                  [class.winner]="r.algorithmDisplayName === getCompareWinner()?.algorithmDisplayName">
-                </div>
-              </div>
-              <span class="chart-val">{{ r.totalComparisons }}</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ── Tab: Arquivos ─────────────────────────────────────────── -->
-        <div *ngIf="activeTab==='files' && multiFileResult" class="tab-pane">
-          <div class="mf-summary">
-            Algoritmo: <strong>{{ multiFileResult.algorithm }}</strong> &nbsp;·&nbsp;
-            Arquivos: <strong>{{ multiFileResult.fileResults.length }}</strong> &nbsp;·&nbsp;
-            Tempo total: <strong>{{ multiFileResult.totalExecutionTimeMs }}ms</strong>
-          </div>
-
-          <div *ngFor="let fr of multiFileResult.fileResults" class="file-card">
-            <div class="file-card-head">
-              <span class="file-name">{{ fr.fileName }}</span>
-            </div>
-            <div class="file-card-body">
-              <span class="pill">{{ fr.result.totalOccurrences }} ocorrência(s)</span>
-              <span class="pill">{{ fr.result.totalComparisons }} comparações</span>
-              <span class="pill">{{ fr.result.executionTimeNs }}ns</span>
-              <div *ngIf="fr.result.occurrences.length" class="pos-tags" style="margin-top:0.4rem;width:100%">
-                <span *ngFor="let p of fr.result.occurrences" class="pos-tag">{{ p }}</span>
-              </div>
+          <div class="otel-callout">
+            <span class="otel-icon">🔭</span>
+            <div>
+              <strong>Próxima etapa — Parte 2:</strong> estas métricas serão instrumentadas com
+              <strong>OpenTelemetry</strong> no backend (.NET), exportadas para
+              <strong>Prometheus</strong> e visualizadas em tempo real no <strong>Grafana</strong>.
+              Traces distribuídos serão enviados ao <strong>Jaeger</strong>.
             </div>
           </div>
         </div>
 
+        <div *ngIf="!metricsSummary || metricsSummary.totalSearches === 0" class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>Nenhuma busca executada ainda. Execute buscas e o dashboard será preenchido automaticamente.</p>
+        </div>
       </div>
+
     </main>
   </div>
 </div>

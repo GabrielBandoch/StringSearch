@@ -3,31 +3,36 @@ using StringSearch.API.Strategies;
 
 namespace StringSearch.API.Services;
 
-public class SearchService
+/// <summary>
+/// Implementação central do serviço de busca.
+///
+/// Padrão Strategy aplicado corretamente:
+///   - Recebe IEnumerable&lt;ISearchStrategy&gt; via DI (não os concretos).
+///   - Resolve o algoritmo pelo AlgorithmId em tempo de execução.
+///   - Não precisa ser alterado ao adicionar um novo algoritmo.
+/// </summary>
+public class SearchService : ISearchService
 {
-    private readonly NaiveSearchStrategy _naive;
-    private readonly RabinKarpSearchStrategy _rabinKarp;
-    private readonly KMPSearchStrategy _kmp;
-    private readonly BoyerMooreSearchStrategy _boyerMoore;
+    private readonly IReadOnlyDictionary<string, ISearchStrategy> _strategies;
 
-    public SearchService(
-        NaiveSearchStrategy naive,
-        RabinKarpSearchStrategy rabinKarp,
-        KMPSearchStrategy kmp,
-        BoyerMooreSearchStrategy boyerMoore)
+    public SearchService(IEnumerable<ISearchStrategy> strategies)
     {
-        _naive = naive;
-        _rabinKarp = rabinKarp;
-        _kmp = kmp;
-        _boyerMoore = boyerMoore;
+        // Indexa as strategies pelo AlgorithmId para lookup O(1)
+        _strategies = strategies.ToDictionary(
+            s => s.AlgorithmId,
+            s => s,
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
+    /// <inheritdoc />
     public SearchResult Search(SearchCommand command)
     {
         var strategy = ResolveStrategy(command.Algorithm);
         return strategy.Execute(command.Text, command.Pattern);
     }
 
+    /// <inheritdoc />
     public MultiFileSearchResult SearchMultipleFiles(MultiFileSearchCommand command)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -49,32 +54,31 @@ public class SearchService
         );
     }
 
+    /// <inheritdoc />
     public List<SearchResult> SearchAllAlgorithms(string text, string pattern)
     {
-        return AllStrategies()
+        return _strategies.Values
             .Select(strategy => strategy.Execute(text, pattern))
             .ToList();
     }
 
+    /// <inheritdoc />
     public List<AlgorithmInfo> GetAlgorithmsInfo()
     {
-        return AllStrategies()
+        return _strategies.Values
             .Select(strategy => strategy.GetInfo())
             .ToList();
     }
 
-    private ISearchStrategy ResolveStrategy(string algorithmId) =>
-        algorithmId.ToLower() switch
-        {
-            "naive"      => _naive,
-            "rabinkarp"  => _rabinKarp,
-            "kmp"        => _kmp,
-            "boyermoore" => _boyerMoore,
-            _            => throw new ArgumentException(
-                                $"Algoritmo '{algorithmId}' não reconhecido. " +
-                                $"Use: naive, rabinkarp, kmp, boyermoore.")
-        };
+    // ─── Privado ─────────────────────────────────────────────────────────────
 
-    private IEnumerable<ISearchStrategy> AllStrategies() =>
-        [_naive, _rabinKarp, _kmp, _boyerMoore];
+    private ISearchStrategy ResolveStrategy(string algorithmId)
+    {
+        if (_strategies.TryGetValue(algorithmId, out var strategy))
+            return strategy;
+
+        var available = string.Join(", ", _strategies.Keys);
+        throw new ArgumentException(
+            $"Algoritmo '{algorithmId}' não reconhecido. Disponíveis: {available}.");
+    }
 }

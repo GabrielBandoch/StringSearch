@@ -22,29 +22,39 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "String Search API",
         Version = "v1",
-        Description = "API para comparação de algoritmos de busca de padrões em strings. " +
-                      "Padrões arquiteturais: Strategy + Facade. Despacho via switch expression."
+        Description =
+            "API para comparação de algoritmos de busca de padrões em strings.\n" +
+            "Padrões arquiteturais: Strategy + Facade.\n" +
+            "DI via IEnumerable<ISearchStrategy> — adicionar algoritmos sem alterar o serviço."
     });
 });
 
-// ─── Strategy: registra cada algoritmo individualmente ───────────────────────
-builder.Services.AddSingleton<NaiveSearchStrategy>();
-builder.Services.AddSingleton<RabinKarpSearchStrategy>();
-builder.Services.AddSingleton<KMPSearchStrategy>();
-builder.Services.AddSingleton<BoyerMooreSearchStrategy>();
+// ─── Strategy Pattern ─────────────────────────────────────────────────────────
+// Cada algoritmo é registrado como ISearchStrategy.
+// O SearchService recebe IEnumerable<ISearchStrategy> via DI:
+//   - Nenhum concreto é referenciado fora desta seção.
+//   - Para adicionar um novo algoritmo, basta registrá-lo aqui.
+builder.Services.AddSingleton<ISearchStrategy, NaiveSearchStrategy>();
+builder.Services.AddSingleton<ISearchStrategy, RabinKarpSearchStrategy>();
+builder.Services.AddSingleton<ISearchStrategy, KMPSearchStrategy>();
+builder.Services.AddSingleton<ISearchStrategy, BoyerMooreSearchStrategy>();
 
-// ─── Service: recebe as strategies individualmente via DI ─────────────────────
-builder.Services.AddSingleton<SearchService>();
+// ─── Service ──────────────────────────────────────────────────────────────────
+// ISearchService para inversão de dependência na Facade.
+builder.Services.AddSingleton<ISearchService, SearchService>();
 
-// ─── Facade: ponto único de entrada para o Controller ────────────────────────
+// ─── Facade ───────────────────────────────────────────────────────────────────
+// Ponto único de entrada para o Controller.
 builder.Services.AddSingleton<ISearchFacade, SearchFacade>();
 
+// ─── Pipeline ─────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "String Search API v1"));
+    app.UseSwaggerUI(c =>
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "String Search API v1"));
 }
 
 app.UseCors("AllowAngular");

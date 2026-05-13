@@ -850,3 +850,329 @@
   border-top: 1px solid var(--light-gray);
   margin: 1.25rem 0;
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// PARTE 1 — Estilos adicionados na refatoração
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── Badge "Observabilidade" ────────────────────────────────────────
+.badge-new {
+  background: var(--near-black);
+  color: var(--white);
+  font-weight: 500;
+}
+
+// ─── Tab Dashboard ──────────────────────────────────────────────────
+.tab-dashboard {
+  font-weight: 600;
+}
+
+// ─── Compare: cards lado a lado ─────────────────────────────────────
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.compare-card {
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: box-shadow 0.2s;
+
+  &.compare-winner {
+    border-color: var(--near-black);
+    box-shadow: 0 0 0 2px var(--near-black);
+  }
+}
+
+.cc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cc-name { font-weight: 600; font-size: 13px; }
+.cc-complexity { font-family: var(--font-mono); font-size: 11px; background: var(--light-gray); padding: 2px 6px; border-radius: 2px; }
+
+.cc-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.cc-stat { display: flex; flex-direction: column; }
+.cc-stat-label { font-size: 10px; color: var(--dark-gray); text-transform: uppercase; letter-spacing: 0.05em; }
+.cc-stat-val { font-size: 16px; font-weight: 600; font-family: var(--font-mono); }
+
+.bar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.bar-label { font-size: 10px; color: var(--dark-gray); width: 80px; flex-shrink: 0; }
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--light-gray);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+.bar-comparisons { background: var(--near-black); }
+.bar-time { background: #555; }
+.bar-pct { font-size: 10px; color: var(--dark-gray); width: 30px; text-align: right; flex-shrink: 0; }
+
+// ─── Compare table ───────────────────────────────────────────────────
+.compare-table-wrapper { overflow-x: auto; }
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--near-black);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dark-gray);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+
+  tr.winner-row td { background: #f9f9f7; font-weight: 500; }
+  .row-crown { margin-right: 4px; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--light-gray);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────
+.dashboard-header {
+  margin-bottom: 24px;
+}
+.dashboard-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dashboard-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+.dashboard-subtitle {
+  font-size: 13px;
+  color: var(--dark-gray);
+  line-height: 1.5;
+}
+
+// KPI cards
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &.kpi-highlight {
+    border-color: var(--near-black);
+    background: var(--near-black);
+    color: var(--white);
+
+    .kpi-label { color: var(--mid-gray); }
+  }
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dark-gray);
+}
+
+// Chart panels
+.chart-panel {
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.chart-panel-header {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.chart-title { font-weight: 600; font-size: 14px; }
+.chart-subtitle { font-size: 12px; color: var(--dark-gray); }
+
+.chart-bars { display: flex; flex-direction: column; gap: 12px; }
+.chart-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.chart-algo-name {
+  font-size: 12px;
+  font-weight: 500;
+  width: 160px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-bar-track {
+  flex: 1;
+  height: 28px;
+  background: var(--light-gray);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.chart-bar-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 32px;
+}
+.chart-bar-time { background: var(--near-black); }
+.chart-bar-count { background: #444; }
+.chart-bar-label-inside {
+  font-size: 10px;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.chart-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--dark-gray);
+  width: 80px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+// Metrics table
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--near-black);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dark-gray);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--light-gray);
+    vertical-align: middle;
+  }
+
+  .ts-cell {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--dark-gray);
+  }
+}
+
+// OpenTelemetry callout
+.otel-callout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #fffdf5;
+  border: 1px solid #e8d97a;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+.otel-icon { font-size: 20px; flex-shrink: 0; }
+
+// ─── Button sm variant ────────────────────────────────────────────────
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+// ─── File result card ─────────────────────────────────────────────────
+.files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--light-gray);
+}
+.files-algo { font-weight: 600; font-family: var(--font-mono); font-size: 13px; }
+.files-total-time { font-size: 13px; color: var(--dark-gray); }
+.file-results-list { display: flex; flex-direction: column; gap: 12px; }
+.file-result-card {
+  background: var(--white);
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.fr-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.fr-filename { font-weight: 600; font-size: 13px; }
+.fr-occurrences { font-size: 13px; color: var(--dark-gray); }
+.fr-stats { display: flex; gap: 16px; margin-bottom: 10px; }
+.fr-stat { font-size: 12px; color: var(--dark-gray); }
+
+// ─── Winner banner ───────────────────────────────────────────────────
+.winner-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--near-black);
+  color: var(--white);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.winner-crown { font-size: 18px; }
