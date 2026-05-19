@@ -1,6 +1,6 @@
 <div class="app-shell">
 
-  <!-- ─── Header ────────────────────────────────────────────────────────── -->
+  <!-- ─── Header ───────────────────────────────────────────────────────── -->
   <header class="app-header">
     <div class="header-inner">
       <div class="brand">
@@ -11,22 +11,19 @@
         <span class="badge">Strategy</span>
         <span class="badge">Facade</span>
         <span class="badge">.NET 8 + Angular</span>
-        <span class="badge badge-new">Observabilidade</span>
+        <span class="badge badge-otel">OpenTelemetry</span>
       </div>
     </div>
   </header>
 
   <div class="app-body">
 
-    <!-- ─── Left: Config Panel ──────────────────────────────────────────── -->
+    <!-- ─── Left: Config Panel ───────────────────────────────────────────── -->
     <aside>
       <div class="panel panel-sticky">
-        <div class="panel-head">
-          <span class="panel-title">Configuração</span>
-        </div>
+        <div class="panel-head"><span class="panel-title">Configuração</span></div>
         <div class="panel-body">
 
-          <!-- Algorithm -->
           <div class="field">
             <label class="field-label">Algoritmo</label>
             <select [(ngModel)]="selectedAlgorithm" class="field-select">
@@ -38,27 +35,18 @@
             </div>
           </div>
 
-          <!-- Pattern -->
           <div class="field">
             <label class="field-label">Padrão de Busca</label>
-            <input type="text" [(ngModel)]="pattern" placeholder="ex: hello"
-              class="field-input" maxlength="100" />
-            <div class="field-footer">
-              <span class="field-hint">{{ pattern.length }} / 100 chars</span>
-            </div>
+            <input type="text" [(ngModel)]="pattern" placeholder="ex: hello" class="field-input" maxlength="100" />
+            <div class="field-footer"><span class="field-hint">{{ pattern.length }} / 100 chars</span></div>
           </div>
 
-          <!-- Text -->
           <div class="field">
             <label class="field-label">Texto de Entrada</label>
-            <textarea [(ngModel)]="textInput" class="field-textarea"
-              placeholder="Cole o texto ou carregue um .txt abaixo..."></textarea>
-            <div class="field-footer">
-              <span class="field-hint">{{ textInput.length }} caracteres</span>
-            </div>
+            <textarea [(ngModel)]="textInput" class="field-textarea" placeholder="Cole o texto ou carregue um .txt abaixo..."></textarea>
+            <div class="field-footer"><span class="field-hint">{{ textInput.length }} caracteres</span></div>
           </div>
 
-          <!-- File upload -->
           <div class="field">
             <label class="field-label">Arquivos .txt</label>
             <label class="upload-area">
@@ -73,34 +61,25 @@
           </div>
 
           <hr class="divider" />
-
-          <!-- Error -->
           <div *ngIf="errorMessage" class="error-box">{{ errorMessage }}</div>
 
-          <!-- Actions -->
           <div class="actions">
-            <button class="btn btn-primary" (click)="onExecute()"
-              [disabled]="isLoading || !isValid()">
+            <button class="btn btn-primary" (click)="onExecute()" [disabled]="isLoading || !isValid()">
               <span *ngIf="!isLoading">▶&nbsp;&nbsp;Executar</span>
               <span *ngIf="isLoading"><span class="btn-spinner">⟳</span>&nbsp;Executando…</span>
             </button>
-
-            <button class="btn btn-ghost" (click)="onCompareAll()"
-              [disabled]="isCompareLoading || !isValid()">
+            <button class="btn btn-ghost" (click)="onCompareAll()" [disabled]="isCompareLoading || !isValid()">
               <span *ngIf="!isCompareLoading">⚖&nbsp;&nbsp;Comparar Todos</span>
               <span *ngIf="isCompareLoading"><span class="btn-spinner">⟳</span>&nbsp;Comparando…</span>
             </button>
-
             <button *ngIf="uploadedFiles.length" class="btn btn-ghost"
               (click)="onSearchFiles()" [disabled]="isLoading || !pattern.trim()">
               📄&nbsp;&nbsp;Buscar nos Arquivos
             </button>
           </div>
-
         </div>
       </div>
 
-      <!-- Algorithm detail -->
       <div *ngIf="getAlgorithmInfo() as info" class="panel algo-detail-card">
         <div class="panel-head"><span class="panel-title">{{ info.displayName }}</span></div>
         <div class="panel-body">
@@ -115,23 +94,18 @@
       </div>
     </aside>
 
-    <!-- ─── Right: Result Panel ──────────────────────────────────────────── -->
+    <!-- ─── Right: Results ────────────────────────────────────────────────── -->
     <main>
-
-      <!-- Tabs -->
       <div class="tabs">
-        <button class="tab-btn" [class.active]="activeTab === 'search'" (click)="setActiveTab('search')">Resultado</button>
-        <button class="tab-btn" [class.active]="activeTab === 'compare'" (click)="setActiveTab('compare')">
-          Comparação
-          <span *ngIf="compareResults.length" class="tab-badge">{{ compareResults.length }}</span>
+        <button class="tab-btn" [class.active]="activeTab === 'search'"    (click)="setActiveTab('search')">Resultado</button>
+        <button class="tab-btn" [class.active]="activeTab === 'compare'"   (click)="setActiveTab('compare')">
+          Comparação<span *ngIf="compareResults.length" class="tab-badge">{{ compareResults.length }}</span>
         </button>
-        <button class="tab-btn" [class.active]="activeTab === 'files'" (click)="setActiveTab('files')">
-          Arquivos
-          <span *ngIf="multiFileResult" class="tab-badge">{{ multiFileResult.fileResults.length }}</span>
+        <button class="tab-btn" [class.active]="activeTab === 'files'"     (click)="setActiveTab('files')">
+          Arquivos<span *ngIf="multiFileResult" class="tab-badge">{{ multiFileResult.fileResults.length }}</span>
         </button>
         <button class="tab-btn tab-dashboard" [class.active]="activeTab === 'dashboard'" (click)="setActiveTab('dashboard')">
-          📊 Dashboard
-          <span *ngIf="metricsSummary && metricsSummary.totalSearches > 0" class="tab-badge">{{ metricsSummary.totalSearches }}</span>
+          📊 Dashboard<span *ngIf="totalSearches > 0" class="tab-badge">{{ totalSearches }}</span>
         </button>
       </div>
 
@@ -209,25 +183,19 @@
               </div>
               <div class="bar-section">
                 <span class="bar-label">Comparações</span>
-                <div class="bar-track">
-                  <div class="bar-fill bar-comparisons" [style.width]="getBarWidth(r.totalComparisons, getMaxComparisons())"></div>
-                </div>
+                <div class="bar-track"><div class="bar-fill bar-comparisons" [style.width]="getBarWidth(r.totalComparisons, getMaxComparisons())"></div></div>
                 <span class="bar-pct">{{ (r.totalComparisons / getMaxComparisons() * 100).toFixed(0) }}%</span>
               </div>
               <div class="bar-section">
                 <span class="bar-label">Tempo (ns)</span>
-                <div class="bar-track">
-                  <div class="bar-fill bar-time" [style.width]="getBarWidth(r.executionTimeNs, getMaxTimeNs())"></div>
-                </div>
+                <div class="bar-track"><div class="bar-fill bar-time" [style.width]="getBarWidth(r.executionTimeNs, getMaxTimeNs())"></div></div>
                 <span class="bar-pct">{{ (r.executionTimeNs / getMaxTimeNs() * 100).toFixed(0) }}%</span>
               </div>
             </div>
           </div>
           <div class="compare-table-wrapper">
             <table class="compare-table">
-              <thead>
-                <tr><th>Algoritmo</th><th>Complexidade</th><th>Ocorrências</th><th>Comparações</th><th>Tempo real</th></tr>
-              </thead>
+              <thead><tr><th>Algoritmo</th><th>Complexidade</th><th>Ocorrências</th><th>Comparações</th><th>Tempo real</th></tr></thead>
               <tbody>
                 <tr *ngFor="let r of compareResults" [class.winner-row]="r === getCompareWinner()">
                   <td><span *ngIf="r === getCompareWinner()" class="row-crown">🏆</span>{{ r.algorithmDisplayName }}</td>
@@ -273,47 +241,118 @@
         </div>
       </div>
 
-      <!-- TAB: Dashboard -->
+      <!-- ══════════════════════════════════════════════════════════════════
+           TAB: Dashboard — OpenTelemetry
+           ══════════════════════════════════════════════════════════════════ -->
       <div *ngIf="activeTab === 'dashboard'" class="tab-content">
+
+        <!-- Header do Dashboard -->
         <div class="dashboard-header">
           <div class="dashboard-title-row">
             <h2 class="dashboard-title">📊 Dashboard de Observabilidade</h2>
-            <button class="btn btn-ghost btn-sm" (click)="resetMetrics()"
-              [disabled]="!metricsSummary || metricsSummary.totalSearches === 0">↺ Resetar</button>
+            <div class="dashboard-actions">
+              <button class="btn btn-ghost btn-sm" (click)="loadPrometheusMetrics()" [disabled]="prometheusLoading">
+                <span *ngIf="!prometheusLoading">↻ Atualizar</span>
+                <span *ngIf="prometheusLoading"><span class="btn-spinner">⟳</span></span>
+              </button>
+              <button class="btn btn-ghost btn-sm" (click)="resetMetrics()" [disabled]="totalSearches === 0">
+                ↺ Resetar local
+              </button>
+            </div>
           </div>
-          <p class="dashboard-subtitle">
-            Métricas coletadas localmente no frontend. Na <strong>Parte 2</strong>, serão exportadas
-            via <strong>OpenTelemetry → Prometheus → Grafana</strong>.
-          </p>
+
+          <!-- Status bar: Prometheus + links externos -->
+          <div class="otel-status-bar">
+            <div class="otel-status" [class.otel-connected]="prometheusAvailable" [class.otel-disconnected]="!prometheusAvailable">
+              <span class="otel-dot"></span>
+              <span *ngIf="prometheusAvailable">Prometheus conectado</span>
+              <span *ngIf="!prometheusAvailable">Prometheus indisponível — usando métricas locais</span>
+              <span *ngIf="lastPrometheusRefresh" class="otel-ts">atualizado {{ lastPrometheusRefresh | date:'HH:mm:ss' }}</span>
+            </div>
+            <div class="otel-links">
+              <a [href]="grafanaUrl"    target="_blank" class="otel-link">Grafana ↗</a>
+              <a [href]="prometheusUrl" target="_blank" class="otel-link">Prometheus ↗</a>
+              <a [href]="jaegerUrl"     target="_blank" class="otel-link">Jaeger ↗</a>
+            </div>
+          </div>
+
+          <!-- Fonte de dados ativa -->
+          <div class="data-source-badge" [class.source-prometheus]="prometheusAvailable" [class.source-local]="!prometheusAvailable">
+            <span *ngIf="prometheusAvailable">📡 Dados reais do Prometheus (OpenTelemetry)</span>
+            <span *ngIf="!prometheusAvailable">💾 Dados coletados localmente no frontend</span>
+          </div>
         </div>
 
-        <div *ngIf="metricsSummary && metricsSummary.totalSearches > 0">
+        <!-- Empty state -->
+        <div *ngIf="totalSearches === 0 && !prometheusLoading" class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>Nenhuma busca executada ainda. Execute buscas e as métricas serão coletadas automaticamente.</p>
+        </div>
+
+        <div *ngIf="totalSearches > 0 || prometheusMetrics.length > 0">
+
+          <!-- KPIs -->
           <div class="kpi-grid">
             <div class="kpi-card">
-              <span class="kpi-value">{{ metricsSummary.totalSearches }}</span>
+              <span class="kpi-value">{{ totalSearches }}</span>
               <span class="kpi-label">Total de Buscas</span>
             </div>
             <div class="kpi-card">
-              <span class="kpi-value">{{ metricsSummary.metrics.length }}</span>
+              <span class="kpi-value">{{ displayMetrics.length }}</span>
               <span class="kpi-label">Algoritmos Usados</span>
             </div>
             <div class="kpi-card kpi-highlight">
-              <span class="kpi-value">{{ metricsSummary.fastestAlgorithm ?? '—' }}</span>
+              <span class="kpi-value">{{ fastestAlgorithm ?? '—' }}</span>
               <span class="kpi-label">Mais Rápido (média)</span>
             </div>
             <div class="kpi-card">
-              <span class="kpi-value">{{ metricsSummary.mostUsedAlgorithm ?? '—' }}</span>
+              <span class="kpi-value">{{ mostUsedAlgorithm ?? '—' }}</span>
               <span class="kpi-label">Mais Utilizado</span>
             </div>
           </div>
 
+          <!-- Prometheus: métricas ricas (p50/p99) -->
+          <div *ngIf="prometheusAvailable && prometheusMetrics.length" class="chart-panel">
+            <div class="chart-panel-header">
+              <span class="chart-title">Latência por Algoritmo (Prometheus)</span>
+              <span class="chart-subtitle">p50 e p99 calculados via histograma OpenTelemetry</span>
+            </div>
+            <div class="prometheus-table-wrapper">
+              <table class="prometheus-table">
+                <thead>
+                  <tr>
+                    <th>Algoritmo</th>
+                    <th>Execuções</th>
+                    <th>Média</th>
+                    <th>p50</th>
+                    <th>p99</th>
+                    <th>Comparações (média)</th>
+                    <th>Ocorrências</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let m of prometheusMetrics">
+                    <td><strong>{{ m.displayName }}</strong></td>
+                    <td>{{ m.totalExecutions }}</td>
+                    <td>{{ formatNs(m.avgDurationNs) }}</td>
+                    <td class="perf-cell">{{ formatNs(m.p50DurationNs) }}</td>
+                    <td class="perf-cell perf-p99">{{ formatNs(m.p99DurationNs) }}</td>
+                    <td>{{ m.avgComparisons.toFixed(0) }}</td>
+                    <td>{{ m.totalOccurrences }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tempo médio (barra) -->
           <div class="chart-panel">
             <div class="chart-panel-header">
-              <span class="chart-title">Tempo Médio de Execução por Algoritmo</span>
-              <span class="chart-subtitle">baseado nas execuções desta sessão</span>
+              <span class="chart-title">Tempo Médio de Execução</span>
+              <span class="chart-subtitle">{{ prometheusAvailable ? 'via Prometheus (taxa 5m)' : 'coletado localmente' }}</span>
             </div>
             <div class="chart-bars">
-              <div *ngFor="let m of metricsSummary.metrics" class="chart-bar-row">
+              <div *ngFor="let m of displayMetrics" class="chart-bar-row">
                 <span class="chart-algo-name">{{ m.displayName }}</span>
                 <div class="chart-bar-track">
                   <div class="chart-bar-fill chart-bar-time" [style.width]="getBarWidth(m.avgTimeNs, getMaxAvgTime())">
@@ -325,13 +364,14 @@
             </div>
           </div>
 
+          <!-- Execuções (barra) -->
           <div class="chart-panel">
             <div class="chart-panel-header">
               <span class="chart-title">Número de Execuções por Algoritmo</span>
-              <span class="chart-subtitle">contagem acumulada na sessão</span>
+              <span class="chart-subtitle">{{ prometheusAvailable ? 'acumulado desde o início' : 'sessão atual' }}</span>
             </div>
             <div class="chart-bars">
-              <div *ngFor="let m of metricsSummary.metrics" class="chart-bar-row">
+              <div *ngFor="let m of displayMetrics" class="chart-bar-row">
                 <span class="chart-algo-name">{{ m.displayName }}</span>
                 <div class="chart-bar-track">
                   <div class="chart-bar-fill chart-bar-count" [style.width]="getBarWidth(m.totalExecutions, getMaxExecutions())">
@@ -343,16 +383,17 @@
             </div>
           </div>
 
+          <!-- Tabela detalhada local -->
           <div class="chart-panel">
             <div class="chart-panel-header">
-              <span class="chart-title">Métricas Detalhadas</span>
+              <span class="chart-title">Métricas Detalhadas (sessão)</span>
             </div>
             <table class="metrics-table">
               <thead>
-                <tr><th>Algoritmo</th><th>Execuções</th><th>Tempo médio</th><th>Comparações médias</th><th>Total comparações</th><th>Última execução</th></tr>
+                <tr><th>Algoritmo</th><th>Execuções</th><th>Tempo médio</th><th>Comp. médias</th><th>Total comp.</th><th>Última execução</th></tr>
               </thead>
               <tbody>
-                <tr *ngFor="let m of metricsSummary.metrics">
+                <tr *ngFor="let m of displayMetrics">
                   <td><strong>{{ m.displayName }}</strong></td>
                   <td>{{ m.totalExecutions }}</td>
                   <td>{{ formatNs(m.avgTimeNs) }}</td>
@@ -364,20 +405,41 @@
             </table>
           </div>
 
-          <div class="otel-callout">
-            <span class="otel-icon">🔭</span>
-            <div>
-              <strong>Próxima etapa — Parte 2:</strong> estas métricas serão instrumentadas com
-              <strong>OpenTelemetry</strong> no backend (.NET), exportadas para
-              <strong>Prometheus</strong> e visualizadas em tempo real no <strong>Grafana</strong>.
-              Traces distribuídos serão enviados ao <strong>Jaeger</strong>.
+          <!-- Stack OTel -->
+          <div class="otel-stack-card">
+            <div class="otel-stack-header">🔭 Stack de Observabilidade (Parte 2)</div>
+            <div class="otel-stack-grid">
+              <div class="otel-stack-item">
+                <span class="otel-stack-icon">📍</span>
+                <div>
+                  <strong>Traces → Jaeger</strong>
+                  <p>Spans por requisição, por algoritmo e por arquivo. Propagação W3C TraceContext. <a [href]="jaegerUrl" target="_blank">Abrir Jaeger ↗</a></p>
+                </div>
+              </div>
+              <div class="otel-stack-item">
+                <span class="otel-stack-icon">📈</span>
+                <div>
+                  <strong>Métricas → Prometheus</strong>
+                  <p>Contador de execuções, histograma de latência (ns), comparações. Scraping a cada 5s. <a [href]="prometheusUrl" target="_blank">Abrir Prometheus ↗</a></p>
+                </div>
+              </div>
+              <div class="otel-stack-item">
+                <span class="otel-stack-icon">📊</span>
+                <div>
+                  <strong>Dashboard → Grafana</strong>
+                  <p>Séries temporais, heatmap de latência, barchart por algoritmo, p50/p99. <a [href]="grafanaUrl" target="_blank">Abrir Grafana ↗</a></p>
+                </div>
+              </div>
+              <div class="otel-stack-item">
+                <span class="otel-stack-icon">📝</span>
+                <div>
+                  <strong>Logs estruturados → OTel</strong>
+                  <p>ILogger enriquecido com resource attributes. Propriedades nomeadas para consulta. Exportação OTLP disponível.</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div *ngIf="!metricsSummary || metricsSummary.totalSearches === 0" class="empty-state">
-          <div class="empty-icon">📊</div>
-          <p>Nenhuma busca executada ainda. Execute buscas e o dashboard será preenchido automaticamente.</p>
         </div>
       </div>
 

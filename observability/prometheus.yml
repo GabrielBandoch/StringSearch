@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Prometheus — configuração de scraping
+# O backend .NET expõe /metrics via OpenTelemetry.Exporter.Prometheus.AspNetCore
+# ─────────────────────────────────────────────────────────────────────────────
+
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+scrape_configs:
+
+  # Backend .NET — endpoint /metrics (OpenTelemetry PrometheusExporter)
+  - job_name: "stringsearch-api"
+    static_configs:
+      - targets: ["host.docker.internal:5000"]
+    metrics_path: /metrics
+    scrape_interval: 5s
+
+  # Prometheus itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
