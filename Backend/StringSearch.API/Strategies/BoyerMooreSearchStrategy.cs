@@ -5,7 +5,7 @@ namespace StringSearch.API.Strategies;
 
 public class BoyerMooreSearchStrategy : ISearchStrategy
 {
-    private const int AlphabetSize = 256;
+    private const int AlphabetSize = 65536;
     public string AlgorithmId => "boyermoore";
     public string AlgorithmDisplayName => "Boyer-Moore";
     public string TheoreticalComplexity => "O(n/m)";
